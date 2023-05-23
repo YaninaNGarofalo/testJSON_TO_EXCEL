@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script src="xlsx.bundle.js"></script>
+    <script>
+        var JSon = [
+  {
+    "id": 1,
+    "name": "Leanne Graham",
+    "username": "Bret",
+    "email": "Sincere@april.biz",
+    "address": "",
+    "phone": "1-770-736-8031 x56442",
+    "website": "hildegard.org",
+    "company": ""
+  },
+  {
+    "id": 2,
+    "name": "Ervin Howell",
+    "username": "Antonette",
+    "email": "Shanna@melissa.tv",
+    "address":"",
+    "phone": "010-692-6593 x09125",
+    "website": "anastasia.net",
+    "company":""
+  },
+  {
+    "id": 3,
+    "name": "Clementine Bauch",
+    "username": "Samantha",
+    "email": "Nathan@yesenia.net",
+    "address": "",
+    "phone": "1-463-123-4447",
+    "website": "ramiro.info",
+    "company": "",
+  }
+]
+
+jsonToExcel(JSon, 'File Name', 'Tab Name')
+
+function jsonToExcel(json, fileName, tabName){
+    //Create a new workbook
+    const wb = XLSX.utils.book_new();
+
+    let Rows = [];
+    let headers = [];
+    let colProps = [];
+
+    //CSS Syles
+    let titleStyles = { font: { name: "Calibri", sz: 24 , color : {rgb: '0072ff'}, bold:true } }    
+    let headersStyles = { font: { name: "Calibri", sz: 11 , color : {rgb: 'ffffff'}, bold:true },  fill: { fgColor: { rgb: "0072ff" } } }
+    let bodyStyles = { 
+                    font: { 
+                      name: "Calibri", sz: 11 
+                    }, 
+                    border: {
+                        right: {
+                            style: 'thin',
+                            color: '000000',
+                        },
+                        left: {
+                            style: 'thin',
+                            color: '000000',
+                        }, 
+                        top: {
+                            style: 'thin',
+                            color: '000000',
+                        }, 
+                        bottom: {
+                            style: 'thin',
+                            color: '000000',
+                        }                              
+                    }
+                }
+                
+    // Adding Title
+    let title = [{ v: fileName , t: "s", s: titleStyles }]
+    Rows.push(title)
+    Rows.push([]) //separator
+    
+    //Convert JSON to workbook sheet 
+    const ws2 = XLSX.utils.json_to_sheet(json);
+
+    //Get sheet range
+    var range = XLSX.utils.decode_range(ws2['!ref']);
+
+    // Adding headers 
+    for(var C = range.s.c; C <= range.e.c; ++C) {
+        var address = XLSX.utils.encode_col(C) + "1"; // first row, column number C --> example: A1, B1, C1 ... N1 
+        if(ws2[address]){
+          ws2[address].v = ws2[address].v.toUpperCase()
+          colProps.push({ width : (ws2[address].v.length + 5)})
+          ws2[address].s =  headersStyles
+          headers.push(ws2[address])
+        }        
+    }
+    Rows.push(headers)
+    
+    //Adding Body  
+    for(var R = 2; R <= range.e.r; ++R) {        
+        let tempRow =[]    
+        for(var C = range.s.c; C <= range.e.c; ++C) {
+            var address = XLSX.utils.encode_col(C) + R ; // first R, column number C --> example: A1...AN , B2... BN
+             ws2[address].s = bodyStyles
+            tempRow.push(ws2[address])   
+        }
+       Rows.push(tempRow)
+    }
+
+    // Convert rows to sheet 
+    const ws = XLSX.utils.aoa_to_sheet(Rows);
+
+    ws['!cols'] = colProps
+    
+    // append sheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, tabName);
+
+    //Write Excel file to browser
+    XLSX.writeFile(wb, fileName + ".xlsx");
+}
+</script>
+</body>
+</html>
